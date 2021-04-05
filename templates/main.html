@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+
+{% block content %}
+    {% if current_user.is_authenticated %}
+        <form action="" method="post">
+            {{ form.hidden_tag() }}
+            <p>{{ form.add_task(type="submit", class="btn btn-primary") }}</p>
+        </form>
+    {% endif %}
+{% endblock %}

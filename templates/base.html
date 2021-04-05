@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <link rel="stylesheet"
+                    href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta1/dist/css/bootstrap.min.css"
+                    integrity="sha384-giJF6kkoqNQ00vy+HMDP7azOuL0xtbfIcaT9wjKHr8RbDVddVHyTfAAsrekwKmP1"
+                    crossorigin="anonymous">
+        <title>{{ title }}</title>
+        <style>
+            .rightstr {
+                float: right;
+                font-size: 150%;
+                margin-right: 10%;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="alert alert-primary">
+             <span
+                style="font-size: 250%;">
+                   Миссия Колонизация Марса
+             </span>
+            {% if current_user.is_authenticated %}
+                <div class="rightstr">
+                    <h4> Пользователь: {{current_user.name}} </h4>
+                    <form method="post">
+                        <button style="float: right;" name='btn' value = "exit" type="submit" class="btn btn-primary">Выход</button>
+                    </form>
+                </div>
+            {% else %}
+                <form method="post" class="rightstr">
+                    <button name='btn' value = "entrance" type="submit" class="btn btn-primary">Вход</button>
+                    <button name='btn' value = "registration" type="submit" class="btn btn-primary">Регистрация</button>
+                </form>
+            {% endif %}
+
+             <span class="rightstr">
+                   Mars one
+             </span>
+        </div>
+        <h4 style="color: #B8B8B8">И на Марсе будут яблони цвести!</h4>
+        <main role="main" class="container">
+            {% block content %}{% endblock %}
+        </main>
+
+    </body>
+</html>

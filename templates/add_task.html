@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+
+{% block content %}
+    {% if current_user.is_authenticated %}
+        <h1>Добавление задачи</h1>
+        <form action="" method="post">
+            {{ form.hidden_tag() }}
+            {% for field in form if field.name not in ['csrf_token', 'submit', 'is_job_finished'] %}
+                <p>
+                    {{ field.label }}<br>
+                    {{ field(class="form-control") }}<br>
+                    {% for error in field.errors %}
+                        <p class="alert alert-danger" role="alert">
+                            {{ error }}
+                        </p>
+                    {% endfor %}
+                </p>
+            {% endfor %}
+            <p>{{ form.is_job_finished() }} {{ form.is_job_finished.label }}</p>
+            <p>{{ form.submit(type="submit", class="btn btn-primary") }}</p>
+            <div>{{ message }}</div>
+
+        </form>
+
+    {% endif %}
+{% endblock %}
