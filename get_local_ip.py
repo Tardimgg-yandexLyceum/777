@@ -12,3 +12,5 @@ def get_ip():
         hostname = socket.gethostname() 
         IP = socket.gethostbyname(hostname) 
         return "".join(list(map(lambda x: chr(x), IP)))
+
+
