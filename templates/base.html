@@ -29,7 +29,7 @@
                     </form>
                 </div>
             {% else %}
-                <form method="post" class="rightstr">
+                <form method="post" action="{{ url_for('work_base_app') }}" class="rightstr">
                     <button name='btn' value = "entrance" type="submit" class="btn btn-primary">Вход</button>
                     <button name='btn' value = "registration" type="submit" class="btn btn-primary">Регистрация</button>
                 </form>

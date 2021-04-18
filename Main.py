@@ -1,3 +1,4 @@
+import argparse
 import os
 import threading
 
@@ -19,6 +20,13 @@ import HomeApi
 
 
 class LoginForm(FlaskForm):
+    email = EmailField('Почта', validators=[DataRequired()])
+    password = PasswordField('Пароль', validators=[DataRequired()])
+    remember_me = BooleanField('Запомнить меня')
+    submit = SubmitField('Войти')
+
+
+class RegistrationForm(FlaskForm):
     email = EmailField('Почта', validators=[DataRequired()])
     password = PasswordField('Пароль', validators=[DataRequired()])
     remember_me = BooleanField('Запомнить меня')
@@ -54,38 +62,31 @@ def load_user(user_id):
     return db_sess.query(User).get(user_id)
 
 
-def work_base_app(func):
-    def wrapper(*args, **kwargs):
-        if request.method == 'POST':
-            try:
-                if request.form["btn"] == "entrance":
-                    print("go to login")
-                    return redirect("/login")
-                elif request.form["btn"] == "registration":
-                    print("go to registration")
-                    return redirect("/")
-                elif request.form["btn"] == "exit":
-                    print("leave session")
-                    logout_user()
-                    return redirect("/")
+@app.route('/work_base_app', methods=['POST'])
+def work_base_app():
+    if request.method == 'POST':
+        try:
+            if request.form["btn"] == "entrance":
+                print("go to login")
+                return redirect("/login")
+            elif request.form["btn"] == "registration":
+                print("go to registration")
+                return redirect("/registration")
+            elif request.form["btn"] == "exit":
+                print("leave session")
+                logout_user()
+                return redirect("/")
 
-            except Exception as e:
-                print(e)
-        return func()
-
-    wrapper.__name__ = func.__name__
-
-    return wrapper
+        except Exception as e:
+            print(e)
 
 
 @app.route('/', methods=['GET', 'POST'])
-@work_base_app
 def start_app():
     return render_template("base.html")
 
 
 @app.route('/login', methods=['GET', 'POST'])
-@work_base_app
 def login():
     form = LoginForm()
 
@@ -106,8 +107,28 @@ def login():
     return render_template('login.html', title='Авторизация', form=form)
 
 
+@app.route('/registration', methods=['GET', 'POST'])
+def registration():
+    form = RegistrationForm()
+
+    if form.validate_on_submit():
+        try:
+            user_bin = HomeApi.get_bin_user(form.email.data)
+            if type(user_bin) is str:
+                user = ConverterObj.decode(user_bin)
+                if user and UserController.check_password(user, form.password.data):
+                    login_user(user, remember=form.remember_me.data)
+                    return redirect("/main")
+            return render_template('login.html',
+                                   message="Неправильный логин или пароль",
+                                   form=form)
+        except ConnectionError:
+            return make_response("Server error", 500)
+
+    return render_template('login.html', title='Авторизация', form=form)
+
+
 @app.route('/main', methods=['GET', 'POST'])
-@work_base_app
 def main_view_controller():
     form = MainForm()
     if form.validate_on_submit():
@@ -117,7 +138,6 @@ def main_view_controller():
 
 
 @app.route('/add_task', methods=['GET', 'POST'])
-@work_base_app
 def add_task_controller():
     form = CreateTaskForm()
     if form.validate_on_submit():
@@ -128,11 +148,19 @@ def add_task_controller():
 
 
 if __name__ == '__main__':
+    app.register_blueprint(salt_api.blueprint)
+
+    def add_test_user():
+        parser = argparse.ArgumentParser()
+        parser.add_argument('--test', action="store_true")
+
+        args = parser.parse_args()
+        if args.test:
+            UserController.create_test_user()
+
     host_db = ConfigReader.readDataBaseHost()
     port_db = int(ConfigReader.readDataBasePort())
-    threading.Thread(target=lambda: DBServer.start_server(host=host_db, port=port_db), daemon=True).start()
-
-    app.register_blueprint(salt_api.blueprint)
+    threading.Thread(target=lambda: DBServer.start_server(host=host_db, port=port_db, func_start=add_test_user), daemon=True).start()
 
     host_web_app = ConfigReader.readWebApplicationHost()
     port_web_app = int(ConfigReader.readWebApplicationPort())

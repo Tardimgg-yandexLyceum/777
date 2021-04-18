@@ -20,7 +20,7 @@ def start_app():
     return render_template('DBView.html')
 
 
-def start_server(host, port):
+def start_server(host, port, func_start=lambda: None):
     app.register_blueprint(db_api.blueprint)
     api.add_resource(user_resources.UserListResource, '/api/usersProperties')
     api.add_resource(user_resources.UserResource, '/api/userProperties')
@@ -28,4 +28,5 @@ def start_server(host, port):
     DataBase.global_init("bd/name.bd")
     #UserController.UserController().create_test_user()
     #app.run(port=8080, host='127.0.0.1')
+    func_start()
     app.run(port=port, host=host)

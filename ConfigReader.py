@@ -27,6 +27,12 @@ def readDataBaseUrl():
     return None
 
 
+def readWebApplicationProtocol():
+    if "IP_config" in config and "dataBaseStartName" in config["IP_config"]:
+        return config["IP_config"]["dataBaseStartName"]
+    return None
+
+
 def readWebApplicationHost():
     if "IP_config" in config and "webApplicationHost" in config["IP_config"]:
         return config["IP_config"]["webApplicationHost"]
