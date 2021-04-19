@@ -4,14 +4,15 @@ import threading
 
 from flask import Flask, render_template, redirect, request, make_response
 from flask_login import LoginManager, login_user, logout_user
-from flask_wtf import FlaskForm
 from wtforms import PasswordField, BooleanField, SubmitField, StringField
 from wtforms.fields.html5 import EmailField
 from wtforms.validators import DataRequired
+from flask_wtf import FlaskForm
+
 
 import ConfigReader
 import get_local_ip
-from data import salt_api, ConverterObj
+from data import salt_api, ConverterObj, authorization
 from data.UserController import UserController
 from data.__all_models import User
 from flask_restful import Api
@@ -19,18 +20,7 @@ from data.DataBaseServer import DBServer, DataBase, user_resources
 import HomeApi
 
 
-class LoginForm(FlaskForm):
-    email = EmailField('Почта', validators=[DataRequired()])
-    password = PasswordField('Пароль', validators=[DataRequired()])
-    remember_me = BooleanField('Запомнить меня')
-    submit = SubmitField('Войти')
 
-
-class RegistrationForm(FlaskForm):
-    email = EmailField('Почта', validators=[DataRequired()])
-    password = PasswordField('Пароль', validators=[DataRequired()])
-    remember_me = BooleanField('Запомнить меня')
-    submit = SubmitField('Войти')
 
 
 class CreateTaskForm(FlaskForm):
@@ -65,6 +55,7 @@ def load_user(user_id):
 @app.route('/work_base_app', methods=['POST'])
 def work_base_app():
     if request.method == 'POST':
+        print(request.form)
         try:
             if request.form["btn"] == "entrance":
                 print("go to login")
@@ -84,48 +75,6 @@ def work_base_app():
 @app.route('/', methods=['GET', 'POST'])
 def start_app():
     return render_template("base.html")
-
-
-@app.route('/login', methods=['GET', 'POST'])
-def login():
-    form = LoginForm()
-
-    if form.validate_on_submit():
-        try:
-            user_bin = HomeApi.get_bin_user(form.email.data)
-            if type(user_bin) is str:
-                user = ConverterObj.decode(user_bin)
-                if user and UserController.check_password(user, form.password.data):
-                    login_user(user, remember=form.remember_me.data)
-                    return redirect("/main")
-            return render_template('login.html',
-                                   message="Неправильный логин или пароль",
-                                   form=form)
-        except ConnectionError:
-            return make_response("Server error", 500)
-
-    return render_template('login.html', title='Авторизация', form=form)
-
-
-@app.route('/registration', methods=['GET', 'POST'])
-def registration():
-    form = RegistrationForm()
-
-    if form.validate_on_submit():
-        try:
-            user_bin = HomeApi.get_bin_user(form.email.data)
-            if type(user_bin) is str:
-                user = ConverterObj.decode(user_bin)
-                if user and UserController.check_password(user, form.password.data):
-                    login_user(user, remember=form.remember_me.data)
-                    return redirect("/main")
-            return render_template('login.html',
-                                   message="Неправильный логин или пароль",
-                                   form=form)
-        except ConnectionError:
-            return make_response("Server error", 500)
-
-    return render_template('login.html', title='Авторизация', form=form)
 
 
 @app.route('/main', methods=['GET', 'POST'])
@@ -149,6 +98,7 @@ def add_task_controller():
 
 if __name__ == '__main__':
     app.register_blueprint(salt_api.blueprint)
+    app.register_blueprint(authorization.blueprint)
 
     def add_test_user():
         parser = argparse.ArgumentParser()

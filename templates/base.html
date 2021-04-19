@@ -24,7 +24,7 @@
             {% if current_user.is_authenticated %}
                 <div class="rightstr">
                     <h4> Пользователь: {{current_user.name}} </h4>
-                    <form method="post">
+                    <form method="post" action="{{ url_for('work_base_app') }}">
                         <button style="float: right;" name='btn' value = "exit" type="submit" class="btn btn-primary">Выход</button>
                     </form>
                 </div>
@@ -39,7 +39,6 @@
                    Mars one
              </span>
         </div>
-        <h4 style="color: #B8B8B8">И на Марсе будут яблони цвести!</h4>
         <main role="main" class="container">
             {% block content %}{% endblock %}
         </main>
