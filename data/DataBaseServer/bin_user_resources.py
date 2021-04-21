@@ -22,6 +22,6 @@ class BinUserResource(Resource):
 
 def abort_if_user_not_found(email):
     session = DataBase.create_session()
-    user = session.query(User.email == email).first()
-    if not user[0]:
+    user = session.query(User).filter(User.email == email).first()
+    if not user:
         abort(404, message=f"User {email} not found")

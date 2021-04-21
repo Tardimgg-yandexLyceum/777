@@ -2,6 +2,8 @@ import flask
 from flask import jsonify, make_response, request
 import os
 
+import ConfigReader
+
 blueprint = flask.Blueprint(
     'salt_api',
     __name__,
@@ -14,7 +16,7 @@ def not_found(error):
     return make_response(jsonify({'error': 'Not found'}), 404)
 
 
-@blueprint.route('/api/addRandomSalt/<string:value>', methods=['GET'])
+@blueprint.route(f'{ConfigReader.read_add_random_salt_value_api_url()}<string:value>', methods=['GET'])
 def add_random_salt_value(value: str):
     additional_salt = os.urandom(50)
     if len(value) >= len(additional_salt):
@@ -35,7 +37,7 @@ def add_random_salt_value(value: str):
     )
 
 
-@blueprint.route('/api/addSalt', methods=['GET'])
+@blueprint.route(ConfigReader.read_add_salt_value_api_url(), methods=['GET'])
 def add_salt_value():
     if not request.json or any(map(lambda x: x not in request.json, ['value', 'salt'])):
         return jsonify(

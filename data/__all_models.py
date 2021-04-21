@@ -11,8 +11,8 @@ class User(SqlAlchemyBase, UserMixin, SerializerMixin):
 
     id = sqlalchemy.Column(sqlalchemy.Integer,
                            primary_key=True, autoincrement=True)
-    surname = sqlalchemy.Column(sqlalchemy.String, nullable=True)
     name = sqlalchemy.Column(sqlalchemy.String, nullable=True)
+    surname = sqlalchemy.Column(sqlalchemy.String, nullable=True)
     age = sqlalchemy.Column(sqlalchemy.Integer, nullable=True)
     email = sqlalchemy.Column(sqlalchemy.String,
                               index=True, unique=True, nullable=True)
