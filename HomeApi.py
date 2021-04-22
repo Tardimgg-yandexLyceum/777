@@ -41,10 +41,21 @@ def add_user(name: str, surname: str, age: int, email: str, hashed_password: str
         raise ConnectionError
 
 
-def get_user(email: str):
+def get_user(email: str, user_id=None):
     try:
         return get(_ip_db + ConfigReader.read_get_user_api_url(), json={
-            'email': email
+            'email': email,
+            'id': user_id
+        }).json()
+    except requests.exceptions.ConnectionError as e:
+        raise ConnectionError
+
+
+def changing_user_properties(user_id: int, change_properties: dict):
+    try:
+        return get(_ip_db + ConfigReader.read_get_user_api_url(), json={
+            'id': user_id,
+            'change_properties': change_properties
         }).json()
     except requests.exceptions.ConnectionError as e:
         raise ConnectionError
@@ -54,6 +65,15 @@ def check_email(email: str):
     try:
         return get(_ip_db + ConfigReader.read_check_email_api_url(), json={
             'email': email
+        }).json()
+    except requests.exceptions.ConnectionError as e:
+        raise ConnectionError
+
+
+def check_id(user_id: int):
+    try:
+        return get(_ip_db + ConfigReader.read_check_id_api_url(), json={
+            'id': user_id
         }).json()
     except requests.exceptions.ConnectionError as e:
         raise ConnectionError
@@ -72,5 +92,25 @@ def add_salt_value(value: str, salt: str):
             'value': value,
             "salt": salt
         }).json()
+    except requests.exceptions.ConnectionError as e:
+        raise ConnectionError
+
+
+def send_password_reset_email(token, recipients):
+    try:
+        return post(_ip_app + ConfigReader.read_send_password_reset_email(), json={
+            'token': token,
+            "recipients": recipients
+        })
+    except requests.exceptions.ConnectionError as e:
+        raise ConnectionError
+
+
+def send_confirmation_email(token, recipients):
+    try:
+        return post(_ip_app + ConfigReader.read_send_confirmation_email(), json={
+            'token': token,
+            "recipients": recipients
+        })
     except requests.exceptions.ConnectionError as e:
         raise ConnectionError

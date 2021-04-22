@@ -18,17 +18,36 @@ parser.add_argument('salt', location="json", required=True, type=list)
 class UserResource(Resource):
 
     def get(self):
-        db_session = DataBase.create_session()
-        if request.json and 'email' in request.json:
-            email = request.json['email']
-            abort_if_user_not_found(email)
-            user = db_session.query(User).filter(User.email == email).first()
-            return jsonify(user.to_dict())
+        if request.json:
+            if 'email' in request.json:
+                abort_if_user_not_found(request.json['email'])
+                db_session = DataBase.create_session()
+                email = request.json['email']
+                user = db_session.query(User).filter(User.email == email).first()
+                return jsonify(user.to_dict())
+            elif 'id' in request.json:
+                abort_if_user_not_found(email=None, user_id=request.json['id'])
+                db_session = DataBase.create_session()
+                user_id = request.json['id']
+                user = db_session.query(User).filter(User.id == user_id).first()
+                return jsonify(user.to_dict())
         else:
             return make_response(jsonify({'error': "No email in the request"}), 400)
 
-    def post(self):  # change properties
-        pass
+    def post(self):
+        if request.json and all(val in request.json for val in ("id", "change_properties")):
+            abort_if_user_not_found(email=None, user_id=request.json['id'])
+            db_session = DataBase.create_session()
+            user = db_session.query(User).filter(User.id == request.json['id'])
+            try:
+                for param in request.json:
+                    vars(user)[param] = request.json[param]
+            except:
+                abort(400, messgae='invalid value type')
+            db_session.commit()
+            return jsonify({'success': 'OK'})
+        else:
+            return make_response(jsonify({'error': "No email in the request"}), 400)
 
     def delete(self, news_id):
         abort_if_user_not_found(news_id)
@@ -57,8 +76,11 @@ class UserListResource(Resource):
         return jsonify({'success': 'OK'})
 
 
-def abort_if_user_not_found(email):
+def abort_if_user_not_found(email, user_id=None):
     session = DataBase.create_session()
-    user = session.query(User).filter(User.email == email).first()
+    if user_id:
+        user = session.query(User).filter(User.id == user_id).first()
+    else:
+        user = session.query(User).filter(User.email == email).first()
     if not user:
         abort(404, message=f"User {email} not found")

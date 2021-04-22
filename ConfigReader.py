@@ -67,6 +67,18 @@ def read_check_email_api_url():
     return None
 
 
+def read_check_id_api_url():
+    if "API_config" in config and "checkId" in config["API_config"]:
+        return config["API_config"]["checkId"]
+    return None
+
+
+def read_add_user_api_url():
+    if "API_config" in config and "user" in config["API_config"]:
+        return config["API_config"]["user"]
+    return None
+
+
 def read_add_random_salt_value_api_url():
     if "API_config" in config and "addRandomSaltValue" in config["API_config"]:
         return config["API_config"]["addRandomSaltValue"]
@@ -79,9 +91,15 @@ def read_add_salt_value_api_url():
     return None
 
 
-def read_add_user_api_url():
-    if "API_config" in config and "user" in config["API_config"]:
-        return config["API_config"]["user"]
+def read_send_password_reset_email():
+    if "API_config" in config and "sendPasswordResetEmail" in config["API_config"]:
+        return config["API_config"]["sendPasswordResetEmail"]
+    return None
+
+
+def read_send_confirmation_email():
+    if "API_config" in config and "sendConfirmationEmail" in config["API_config"]:
+        return config["API_config"]["sendConfirmationEmail"]
     return None
 
 

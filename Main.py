@@ -12,7 +12,7 @@ from flask_wtf import FlaskForm
 
 import ConfigReader
 import get_local_ip
-from data import salt_api, ConverterObj, authorization
+from data import salt_api, ConverterObj, authorization, EMail_api
 from data.UserController import UserController
 from data.__all_models import User
 from flask_restful import Api
@@ -34,6 +34,7 @@ class MainForm(FlaskForm):
 
 
 app = Flask(__name__)
+
 api = Api(app)
 
 SECRET_KEY = os.urandom(32)
@@ -103,6 +104,7 @@ def add_task_controller():
 if __name__ == '__main__':
     app.register_blueprint(salt_api.blueprint)
     app.register_blueprint(authorization.blueprint)
+    app.register_blueprint(EMail_api.blueprint)
 
 
     def add_test_user():
