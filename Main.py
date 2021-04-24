@@ -3,7 +3,7 @@ import os
 import threading
 
 from flask import Flask, render_template, redirect, request, make_response
-from flask_login import LoginManager, login_user, logout_user
+from flask_login import LoginManager, login_user, logout_user, current_user
 from flask_mail import Mail
 from wtforms import PasswordField, BooleanField, SubmitField, StringField
 from wtforms.fields.html5 import EmailField
@@ -54,8 +54,7 @@ login_manager.init_app(app)
 
 @login_manager.user_loader
 def load_user(user_id):
-    db_sess = DataBase.create_session()
-    return db_sess.query(User).get(user_id)
+    return UserController.UseUserApi.get_bin_user(email="", user_id=user_id)
 
 
 @app.route('/work_base_app', methods=['POST'])
@@ -79,26 +78,11 @@ def work_base_app():
 
 @app.route('/', methods=['GET', 'POST'])
 def start_app():
-    return render_template("base.html")
-
-
-@app.route('/main', methods=['GET', 'POST'])
-def main_view_controller():
     form = MainForm()
     if form.validate_on_submit():
         return redirect("/add_task")
 
     return render_template('main.html', title='Главная', form=form)
-
-
-@app.route('/add_task', methods=['GET', 'POST'])
-def add_task_controller():
-    form = CreateTaskForm()
-    if form.validate_on_submit():
-        # save
-        return redirect("/main")
-
-    return render_template('add_task.html', title='Добавление задачи', form=form)
 
 
 if __name__ == '__main__':

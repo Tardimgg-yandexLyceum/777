@@ -23,8 +23,8 @@ def main():
 
 def start_server(host, port, func_start=lambda: None):
     app.register_blueprint(db_api.blueprint)
-    api.add_resource(user_resources.UserListResource, ConfigReader.read_add_user_api_url())
-    api.add_resource(user_resources.UserResource, ConfigReader.read_get_user_api_url())
+    api.add_resource(user_resources.UserListResource, ConfigReader.read_users_api_url())
+    api.add_resource(user_resources.UserResource, ConfigReader.read_user_api_url())
     api.add_resource(bin_user_resources.BinUserResource, ConfigReader.read_get_bin_user_api_url())
     DataBase.global_init("bd/name.bd")
     # UserController.UserController().create_test_user()

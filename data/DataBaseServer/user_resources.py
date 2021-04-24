@@ -9,10 +9,10 @@ from data.DataBaseServer import DataBase
 parser = reqparse.RequestParser()
 parser.add_argument('name', location="json", required=True)
 parser.add_argument('surname', location="json", required=True)
-parser.add_argument('age', location="json", required=True, type=int)
 parser.add_argument('email', location="json", required=True)
 parser.add_argument('hashed_password', location="json", required=True)
 parser.add_argument('salt', location="json", required=True, type=list)
+parser.add_argument('confirmed', location="json", required=True, type=bool)
 
 
 class UserResource(Resource):
@@ -38,24 +38,11 @@ class UserResource(Resource):
         if request.json and all(val in request.json for val in ("id", "change_properties")):
             abort_if_user_not_found(email=None, user_id=request.json['id'])
             db_session = DataBase.create_session()
-            user = db_session.query(User).filter(User.id == request.json['id'])
-            try:
-                for param in request.json:
-                    vars(user)[param] = request.json[param]
-            except:
-                abort(400, messgae='invalid value type')
+            db_session.query(User).filter(User.id == request.json['id']).update(request.json['change_properties'])
             db_session.commit()
             return jsonify({'success': 'OK'})
         else:
             return make_response(jsonify({'error': "No email in the request"}), 400)
-
-    def delete(self, news_id):
-        abort_if_user_not_found(news_id)
-        session = DataBase.create_session()
-        news = session.query(User).get(news_id)
-        session.delete(news)
-        session.commit()
-        return jsonify({'success': 'OK'})
 
 
 class UserListResource(Resource):
@@ -63,17 +50,29 @@ class UserListResource(Resource):
     def post(self):
         args = parser.parse_args()
         session = DataBase.create_session()
-        test_user = User()
-        test_user.name = args["name"]
-        test_user.surname = args["surname"]
-        test_user.age = args["age"]
-        test_user.email = args["email"]
-        test_user.hashed_password = args["hashed_password"]
-        test_user.salt = args["salt"]
-        session.add(test_user)
+        user = User()
+        user.name = args["name"]
+        user.surname = args["surname"]
+        user.email = args["email"]
+        user.hashed_password = args["hashed_password"]
+        user.salt = args["salt"]
+        user.confirmed = args['confirmed']
+        session.add(user)
         session.commit()
 
         return jsonify({'success': 'OK'})
+
+    def delete(self):
+        if request.json and 'id' in request.json:
+            user_id = request.json['id']
+            abort_if_user_not_found(email=None, user_id=user_id)
+            session = DataBase.create_session()
+            user = session.query(User).filter(User.id == user_id).first()
+            session.delete(user)
+            session.commit()
+            return jsonify({'success': 'OK'})
+        else:
+            return make_response(jsonify({'error': "No id in the request"}), 400)
 
 
 def abort_if_user_not_found(email, user_id=None):

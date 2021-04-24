@@ -1,5 +1,5 @@
 import requests
-from requests import get, post
+from requests import get, post, delete
 import configparser
 
 import ConfigReader
@@ -18,24 +18,29 @@ else:
     _ip_app = None
 
 
-def get_bin_user(email: str):
+def get_bin_user(email: str, user_id=None):
     try:
-        return get(_ip_db + ConfigReader.read_get_bin_user_api_url(), json={
-            'email': email
-        }).json()
+        if user_id:
+            return get(_ip_db + ConfigReader.read_get_bin_user_api_url(), json={
+                'id': user_id
+            }).json()
+        else:
+            return get(_ip_db + ConfigReader.read_get_bin_user_api_url(), json={
+                'email': email,
+            }).json()
     except requests.exceptions.ConnectionError as e:
         raise ConnectionError
 
 
-def add_user(name: str, surname: str, age: int, email: str, hashed_password: str, salt: bytes):
+def add_user(name: str, surname: str, email: str, hashed_password: str, salt: bytes, confirmed: bool):
     try:
-        return post(_ip_db + ConfigReader.read_add_user_api_url(), json={
+        return post(_ip_db + ConfigReader.read_users_api_url(), json={
             'email': email,
             "hashed_password": hashed_password,
             'name': name,
             'surname': surname,
-            'age': age,
             'salt': salt,
+            'confirmed': confirmed
         }).json()
     except requests.exceptions.ConnectionError as e:
         raise ConnectionError
@@ -43,8 +48,21 @@ def add_user(name: str, surname: str, age: int, email: str, hashed_password: str
 
 def get_user(email: str, user_id=None):
     try:
-        return get(_ip_db + ConfigReader.read_get_user_api_url(), json={
-            'email': email,
+        if user_id:
+            return get(_ip_db + ConfigReader.read_user_api_url(), json={
+                'id': user_id
+            }).json()
+        else:
+            return get(_ip_db + ConfigReader.read_user_api_url(), json={
+                'email': email,
+            }).json()
+    except requests.exceptions.ConnectionError as e:
+        raise ConnectionError
+
+
+def delete_user(user_id):
+    try:
+        return delete(_ip_db + ConfigReader.read_users_api_url(), json={
             'id': user_id
         }).json()
     except requests.exceptions.ConnectionError as e:
@@ -53,7 +71,7 @@ def get_user(email: str, user_id=None):
 
 def changing_user_properties(user_id: int, change_properties: dict):
     try:
-        return get(_ip_db + ConfigReader.read_get_user_api_url(), json={
+        return post(_ip_db + ConfigReader.read_user_api_url(), json={
             'id': user_id,
             'change_properties': change_properties
         }).json()

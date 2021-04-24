@@ -55,9 +55,9 @@ def read_get_bin_user_api_url():
     return None
 
 
-def read_get_user_api_url():
-    if "API_config" in config and "getUser" in config["API_config"]:
-        return config["API_config"]["getUser"]
+def read_user_api_url():
+    if "API_config" in config and "user" in config["API_config"]:
+        return config["API_config"]["user"]
     return None
 
 
@@ -73,9 +73,9 @@ def read_check_id_api_url():
     return None
 
 
-def read_add_user_api_url():
-    if "API_config" in config and "user" in config["API_config"]:
-        return config["API_config"]["user"]
+def read_users_api_url():
+    if "API_config" in config and "users" in config["API_config"]:
+        return config["API_config"]["users"]
     return None
 
 

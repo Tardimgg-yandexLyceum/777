@@ -6,7 +6,7 @@ from wtforms import PasswordField, BooleanField, SubmitField, StringField
 from wtforms.fields.html5 import EmailField
 from wtforms.validators import DataRequired
 
-from flask_login import LoginManager, login_user, logout_user
+from flask_login import LoginManager, login_user, logout_user, current_user
 
 import HomeApi
 import Main
@@ -21,10 +21,11 @@ blueprint = flask.Blueprint(
 
 
 class RegistrationForm(FlaskForm):
+    name = StringField('Имя', validators=[DataRequired()])
+    surname = StringField('Фамилия', validators=[DataRequired()])
     email = EmailField('Почта', validators=[DataRequired()])
     password = PasswordField('Пароль', validators=[DataRequired()])
-    remember_me = BooleanField('Запомнить меня')
-    submit = SubmitField('Войти')
+    submit = SubmitField('Зарегистрироваться')
 
 
 class LoginForm(FlaskForm):
@@ -49,12 +50,16 @@ def login():
     form = LoginForm()
     if form.validate_on_submit():
         try:
-            user_bin = UserController.UseUserApi.get_bin_user(form.email.data)
-            if type(user_bin) is str:
-                user = ConverterObj.decode(user_bin)
-                if user and UserController.check_password(user, form.password.data):
-                    login_user(user)
-                    return redirect("/main")
+            user = UserController.UseUserApi.get_bin_user(form.email.data)
+            if user:
+                if user.confirmed:
+                    if user and UserController.check_password(user, form.password.data):
+                        login_user(user)
+                        return redirect("/")
+                else:
+                    return render_template('login.html',
+                                           message="Подтвердите свой аккаунт",
+                                           form=form)
             return render_template('login.html',
                                    message="Неправильный логин или пароль",
                                    form=form)
@@ -71,9 +76,9 @@ def forgot_password():
     if form.validate_on_submit():
         try:
             check_email = UserController.UseUserApi.check_email(form.email.data)
-            if check_email['contains_value']:
+            if check_email:
                 user_id = UserController.UseUserApi.get_user(form.email.data)['id']
-                token = UserController.get_reset_password_token(user_id, 600)
+                token = UserController.get_user_token(user_id, 600)
                 HomeApi.send_password_reset_email(token, form.email.data)
                 return 'Mail Sent...'
             else:
@@ -89,7 +94,7 @@ def forgot_password():
 
 @blueprint.route('/password_recovery/<token>', methods=['GET', 'POST'])
 def password_recovery(token):
-    user_id = UserController.verify_reset_password_token(token)
+    user_id = UserController.verify_user_token(token)
     if not user_id:
         return make_response("Токен недействителен", 403)
 
@@ -115,23 +120,40 @@ def registration():
     if form.validate_on_submit():
         try:
             check_email = UserController.UseUserApi.check_email(form.email.data)
-            if not check_email['contains_value']:
+            if not check_email:
                 UserController.create_user(email=form.email.data, password=form.password.data,
-                                           name='qwe', surname='qwe', age=18)
+                                           name=form.name.data, surname=form.surname.data, confirmed=False)
+                token = UserController.get_user_token(form.email.data, 600)
+                HomeApi.send_confirmation_email(token, form.email.data)
+                return 'Отправлено письмо для подтверждения'
+            elif not UserController.UseUserApi.get_user(form.email.data)['confirmed']:
+                user_id = UserController.UseUserApi.get_user(form.email.data)['id']
+                UserController.UseUserApi.delete_user(user_id)
+
+                UserController.create_user(email=form.email.data, password=form.password.data,
+                                           name=form.name.data, surname=form.surname.data, confirmed=False)
+                token = UserController.get_user_token(form.email.data, 600)
+                HomeApi.send_confirmation_email(token, form.email.data)
+                return 'Отправлено письмо для подтверждения'
             else:
                 return render_template('registration.html',
                                        message="Такой пользователь уже существует",
                                        form=form)
-            # user_bin = HomeApi.get_bin_user(form.email.data)
-            # if type(user_bin) is str:
-            #    user = ConverterObj.decode(user_bin)
-            #    if user and UserController.check_password(user, form.password.data):
-            #        login_user(user, remember=form.remember_me.data)
-            #        return redirect("/main")
-            # return render_template('registration(old).html',
-            #                       message="Неправильный логин или пароль",
-            #                       form=form)
         except ConnectionError:
             return make_response("Server error", 500)
 
     return render_template('registration.html', title='Регистрация', form=form)
+
+
+@blueprint.route('/confirmation_email/<token>', methods=['GET', 'POST'])
+def confirmation_email(token):
+    email = UserController.verify_user_token(token)
+    if not email:
+        return make_response("Токен недействителен", 403)
+
+    if UserController.UseUserApi.check_email(email):
+        user_id = UserController.UseUserApi.get_user(email=email)['id']
+        UserController.changing_user(user_id, {'confirmed': True})
+        return redirect("/login")
+    else:
+        return make_response("Токен недействителен", 403)

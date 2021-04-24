@@ -2,6 +2,7 @@ from time import time
 
 import jwt
 import HomeApi
+from data import ConverterObj
 from data.__all_models import User
 from flask import current_app as app
 from data.DataBaseServer import DataBase
@@ -11,7 +12,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 class UserController:
 
     @staticmethod
-    def create_user(email, password, age, name='user', surname="user"):
+    def create_user(email, password, name='user', surname="user", confirmed=True):
         try:
             get_salt_response = HomeApi.add_random_salt_value(password)
             salt = get_salt_response['salt']
@@ -20,14 +21,13 @@ class UserController:
             salt = ""
             hashed_password = UserController.get_hashed_password(password)
         HomeApi.add_user(email=email, hashed_password=hashed_password,
-                         name=name, surname=surname, age=age, salt=salt)
+                         name=name, surname=surname, salt=salt, confirmed=confirmed)
 
     @staticmethod
     def create_test_user():
         UserController.create_user(
             email="qwe@qwe",
             password='qwe',
-            age=18,
             name='asd',
             surname='qwe'
         )
@@ -60,37 +60,42 @@ class UserController:
             return False
 
     @staticmethod
-    def get_reset_password_token(id, expires_in=600):
+    def get_user_token(user_id, expires_in=600):
         return jwt.encode(
-            {'reset_password': id, 'exp': time() + expires_in},
+            {'id': user_id, 'exp': time() + expires_in},
             app.config['SECRET_KEY'], algorithm='HS256')
 
     @staticmethod
-    def verify_reset_password_token(token):
+    def verify_user_token(token):
         try:
-            id = jwt.decode(token, app.config['SECRET_KEY'],
-                            algorithms=['HS256'])['reset_password']
+            user_id = jwt.decode(token, app.config['SECRET_KEY'],
+                                 algorithms=['HS256'])['id']
         except:
             return None
-        return User.query.get(id)
+        return user_id
 
     class UseUserApi:
 
         @staticmethod
-        def get_bin_user(email: str):
-            HomeApi.get_bin_user(email)
+        def get_bin_user(email: str, user_id=None):
+            str_user = HomeApi.get_bin_user(email, user_id)
+            if type(str_user) is str:
+                return ConverterObj.decode(str_user)
+            return None
+
 
         @staticmethod
         def get_user(email: str, user_id=None):
-            HomeApi.get_user(email, user_id)
+            return HomeApi.get_user(email, user_id)
 
         @staticmethod
         def check_email(email: str):
-            HomeApi.check_email(email)
+            return HomeApi.check_email(email)["contains_value"]
 
         @staticmethod
         def check_id(user_id: int):
-            HomeApi.check_id(user_id)
+            return HomeApi.check_id(user_id)["contains_value"]
 
-
-
+        @staticmethod
+        def delete_user(user_id: int):
+            return HomeApi.delete_user(user_id)

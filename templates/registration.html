@@ -6,7 +6,7 @@
 <head>
     <meta charset="UTF-8">
 
-    <title>sign_in_form</title>
+    <title>registration_form</title>
 
     <link rel="stylesheet" href="{{ url_for( 'static', filename='css/registration.css')}}">
 
@@ -15,15 +15,19 @@
 
 <body>
     <div align="center" id="wrapper">
-        <h1 align="center">Регистрация</h1>
-        <form style="margin-top: 25px;" id="signin" method="post" action="" autocomplete="off">
+        <h1 style="margin-left: 38px;" align="center">Регистрация</h1>
+        <form  style="margin-top: 25px;" id="registration" method="post" action="" autocomplete="off">
             {{ form.hidden_tag() }}
-            {{ form.email(type="text", placeholder="Логин") }}
-            <!-- <input type="text" id="user" name="user" placeholder="Логин"/> !-->
-            {{ form.password(type="password", placeholder="Пароль") }}
+            {% for field in form if field.name not in ['csrf_token', 'submit', 'is_job_finished'] %}
+                    {{ field(type='text', placeholder = field.name) }}<br>
+                    {% for error in field.errors %}
+                        <p class="alert alert-danger" role="alert">
+                            {{ error }}
+                        </p>
+                    {% endfor %}
+            {% endfor %}
             <!--<input type="password" id="pass" name="pass" placeholder="Пароль"/> !-->
-            <button type="submit">&#xf0da;</button>
-            <a href="/forgot_password">Забыли пароль?</a>
+            <p>{{ form.submit(type="submit", class="btn btn-primary") }}</p>
             <div style="margin-top: 5px; color: #FFFFFF">{{ message }}</div>
 
         </form>
