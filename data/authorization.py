@@ -80,7 +80,7 @@ def forgot_password():
                 user_id = UserController.UseUserApi.get_user(form.email.data)['id']
                 token = UserController.get_user_token(user_id, 600)
                 HomeApi.send_password_reset_email(token, form.email.data)
-                return 'Mail Sent...'
+                return 'Отправлено письмо для восстановления'
             else:
                 return render_template('forgot_password.html',
                                        message="Такого пользователя не существует",
@@ -105,8 +105,8 @@ def password_recovery(token):
                 return render_template("forgot_password.html",
                                        message="Пароли не совпадают",
                                        form=form)
-            HomeApi.changing_user_properties(user_id, {'password': form.password.data})
-            return "Пароль изменен"
+            UserController.changing_user(user_id, {'password': form.password.data})
+            return redirect('/login')
 
         except ConnectionError:
             return make_response("Server error", 500)

@@ -38,7 +38,11 @@ class UserController:
             check_id = HomeApi.check_id(user_id)
             if check_id:
                 if 'password' in change_properties:
-                    change_properties['password'] = UserController.get_hashed_password(change_properties['password'])
+                    get_salt_response = HomeApi.add_random_salt_value(change_properties['password'])
+                    change_properties['hashed_password'] = UserController.get_hashed_password(
+                        get_salt_response['salt_value'])
+                    change_properties['salt'] = get_salt_response['salt']
+                    del change_properties['password']
                 HomeApi.changing_user_properties(user_id, change_properties)
         except ConnectionError:
             pass
@@ -82,7 +86,6 @@ class UserController:
             if type(str_user) is str:
                 return ConverterObj.decode(str_user)
             return None
-
 
         @staticmethod
         def get_user(email: str, user_id=None):

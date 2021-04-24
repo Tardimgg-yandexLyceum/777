@@ -1,3 +1,4 @@
+from sqlalchemy import exc
 from flask_restful import Resource, abort, reqparse
 from flask import jsonify, request, make_response
 
@@ -38,7 +39,10 @@ class UserResource(Resource):
         if request.json and all(val in request.json for val in ("id", "change_properties")):
             abort_if_user_not_found(email=None, user_id=request.json['id'])
             db_session = DataBase.create_session()
-            db_session.query(User).filter(User.id == request.json['id']).update(request.json['change_properties'])
+            try:
+                db_session.query(User).filter(User.id == request.json['id']).update(request.json['change_properties'])
+            except exc.InvalidRequestError as e:
+                abort(404, message=e)
             db_session.commit()
             return jsonify({'success': 'OK'})
         else:
