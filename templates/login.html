@@ -18,9 +18,9 @@
         <h1 align="center">Вход</h1>
         <form style="margin-top: 25px;" id="signin" method="post" action="" autocomplete="off">
             {{ form.hidden_tag() }}
-            {{ form.email(type="text", placeholder="Логин") }}
+            {{ form.email(type="text", placeholder=form.email.label.text) }}
             <!-- <input type="text" id="user" name="user" placeholder="Логин"/> !-->
-            {{ form.password(type="password", placeholder="Пароль") }}
+            {{ form.password(type="password", placeholder=form.password.label.text) }}
             <!--<input type="password" id="pass" name="pass" placeholder="Пароль"/> !-->
             <button type="submit">&#xf0da;</button>
             <a href="/forgot_password">Забыли пароль?</a>

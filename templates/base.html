@@ -19,26 +19,58 @@
         </style>
     </head>
     <body>
-        <div class="alert alert-dark" >
-             <span
-                style="margin-left: 50px; font-size: 250%;">
+        <!--
+        <div style="width: 100%" class="alert alert-dark" >
+            <form method="post" action="{{ url_for('work_base_app') }}">
+                <button name="btn" value = "root" type="submit"
+                    style="background-color: inherit; outline: 0; border: 0; margin-left: 50px; font-size: 250%;">
                    777
-             </span>
-            {% if current_user.is_authenticated %}
-                <div class="rightstr">
-                    <h4> Пользователь: {{current_user.name}} </h4>
-                    <form method="post" action="{{ url_for('work_base_app') }}">
-                        <button style="float: right;" name='btn' value = "exit" type="submit" class="btn btn-primary">Выход</button>
-                    </form>
-                </div>
-            {% else %}
-                <form method="post" action="{{ url_for('work_base_app') }}" class="rightstr">
-                    <button name='btn' value = "entrance" type="submit" class="btn btn-primary">Вход</button>
-                    <button name='btn' value = "registration" type="submit" class="btn btn-primary">Регистрация</button>
-                </form>
-            {% endif %}
+                </button>
+                <div style="background-color: #000000" align="center" class="rightstr">
+                    {% if current_user.is_authenticated %}
+                        <h4> Пользователь: {{current_user.name}} </h4>
+                            <button style="float: right;" name='btn' value = "exit" type="submit" class="btn btn-primary">Выход</button>
 
-        </div>
+                    {% else %}
+                        <button name='btn' value = "entrance" type="submit" class="btn btn-primary">Вход</button>
+                        <button name='btn' value = "registration" type="submit" class="btn btn-primary">Регистрация</button>
+                    {% endif %}
+                </div>
+            </form>
+        </div> -->
+
+        <nav class="navbar navbar-expand-lg" style="background-color: #e6e6e6;">
+  <div class="container-fluid">
+      <form method="post" action="{{ url_for('work_base_app') }}">
+          <button name="btn" value = "root" type="submit"
+                   style="background-color: inherit; outline: 0; border: 0;font-size: 130%;">
+                   777
+          </button>
+      </form>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+      </ul>
+      <form method="post" action="{{ url_for('work_base_app') }}" class="d-flex">
+          <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+              {% if current_user.is_authenticated %}
+                    <a class="btn bg-transparent disabled"> Пользователь: {{current_user.name}} </a>
+                    <button style="float: right;" name='btn' value = "exit" type="submit" class="btn btn-outline-success">Выход</button>
+
+              {% else %}
+                <button name='btn' value = "entrance" type="submit" class="btn btn-outline-success">Вход</button>
+                <button name='btn' value = "registration" type="submit" class="btn btn-outline-dark">Регистрация</button>
+              {% endif %}
+
+          </div>
+      </form>
+    </div>
+  </div>
+</nav>
+
+
         <main role="main" class="container">
             {% block content %}{% endblock %}
         </main>

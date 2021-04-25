@@ -1,10 +1,32 @@
 {% extends "base.html" %}
 
 {% block content %}
-    {% if current_user.is_authenticated %}
-        <form action="" method="post">
-            {{ form.hidden_tag() }}
-            <p>{{ form.add_task(type="submit", class="btn btn-primary") }}</p>
-        </form>
-    {% endif %}
+    <form action="" method="post">
+        {{ form.hidden_tag() }}
+        <table cellpadding="15"  width="100%" style="margin-top: 50px">
+            {% for card in cards %}
+                {% if loop.index % 3 == 1 %}
+                    <TR>
+                {% endif %}
+                <TD align="center">
+                    <div class="card" align="left" style="background-color: #dddddd; width: 18rem;">
+                        <img src="{{card['image']}}" class="card-img-top" alt="...">
+                        <div class="card-body">
+                            <h5 class="card-title">{{card['title']}}</h5>
+                            <p class="card-text">{{card['short_info']}}</p>
+                        </div>
+                            <button name='btn' value = {{'_'.join(card['redirect_first_event'].split())}} style="text-align: left; background-color: #dddddd;" class="list-group-item">{{card['first_event']}}</button>
+                            <button name='btn' value = {{'_'.join(card['redirect_second_event'].split())}} style="text-align: left; background-color: #dddddd;" class="list-group-item">{{card['second_event']}}</button>
+                            <button name='btn' value = {{'_'.join(card['redirect_third_event'].split())}} style="text-align: left; background-color: #dddddd;" class="list-group-item">{{card['third_event']}}</button>
+                        <div class="card-body">
+                            <a href={{card['title']}} class="card-link">Посмотреть</a>
+                        </div>
+                    </div>
+                </TD>
+                {% if loop.index % 3 == 0 %}
+                    </TR>
+                {% endif %}
+            {% endfor %}
+        </table>
+    </form>
 {% endblock %}

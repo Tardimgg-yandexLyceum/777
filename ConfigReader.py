@@ -91,15 +91,27 @@ def read_add_salt_value_api_url():
     return None
 
 
-def read_send_password_reset_email():
+def read_send_password_reset_email_api_url():
     if "API_config" in config and "sendPasswordResetEmail" in config["API_config"]:
         return config["API_config"]["sendPasswordResetEmail"]
     return None
 
 
-def read_send_confirmation_email():
+def read_send_confirmation_email_api_url():
     if "API_config" in config and "sendConfirmationEmail" in config["API_config"]:
         return config["API_config"]["sendConfirmationEmail"]
+    return None
+
+
+def read_get_main_events_api_url():
+    if "API_config" in config and "getMainEvents" in config["API_config"]:
+        return config["API_config"]["getMainEvents"]
+    return None
+
+
+def read_get_all_events_by_type_api_url():
+    if "API_config" in config and "getAllEventsByType" in config["API_config"]:
+        return config["API_config"]["getAllEventsByType"]
     return None
 
 

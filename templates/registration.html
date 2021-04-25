@@ -19,7 +19,7 @@
         <form  style="margin-top: 25px;" id="registration" method="post" action="" autocomplete="off">
             {{ form.hidden_tag() }}
             {% for field in form if field.name not in ['csrf_token', 'submit', 'is_job_finished'] %}
-                    {{ field(type='text', placeholder = field.name) }}<br>
+                    {{ field(type='text', placeholder = field.label.text) }}<br>
                     {% for error in field.errors %}
                         <p class="alert alert-danger" role="alert">
                             {{ error }}

@@ -14,6 +14,7 @@ parser.add_argument('email', location="json", required=True)
 parser.add_argument('hashed_password', location="json", required=True)
 parser.add_argument('salt', location="json", required=True, type=list)
 parser.add_argument('confirmed', location="json", required=True, type=bool)
+parser.add_argument('money', location="json", required=True, type=int)
 
 
 class UserResource(Resource):
@@ -61,6 +62,7 @@ class UserListResource(Resource):
         user.hashed_password = args["hashed_password"]
         user.salt = args["salt"]
         user.confirmed = args['confirmed']
+        user.money = args['money']
         session.add(user)
         session.commit()
 

@@ -32,7 +32,7 @@ def get_bin_user(email: str, user_id=None):
         raise ConnectionError
 
 
-def add_user(name: str, surname: str, email: str, hashed_password: str, salt: bytes, confirmed: bool):
+def add_user(name: str, surname: str, email: str, hashed_password: str, salt: bytes, confirmed: bool, money: int):
     try:
         return post(_ip_db + ConfigReader.read_users_api_url(), json={
             'email': email,
@@ -40,7 +40,8 @@ def add_user(name: str, surname: str, email: str, hashed_password: str, salt: by
             'name': name,
             'surname': surname,
             'salt': salt,
-            'confirmed': confirmed
+            'confirmed': confirmed,
+            'money': money
         }).json()
     except requests.exceptions.ConnectionError as e:
         raise ConnectionError
@@ -116,7 +117,7 @@ def add_salt_value(value: str, salt: str):
 
 def send_password_reset_email(token, recipients):
     try:
-        return post(_ip_app + ConfigReader.read_send_password_reset_email(), json={
+        return post(_ip_app + ConfigReader.read_send_password_reset_email_api_url(), json={
             'token': token,
             "recipients": recipients
         })
@@ -126,9 +127,23 @@ def send_password_reset_email(token, recipients):
 
 def send_confirmation_email(token, recipients):
     try:
-        return post(_ip_app + ConfigReader.read_send_confirmation_email(), json={
+        return post(_ip_app + ConfigReader.read_send_confirmation_email_api_url(), json={
             'token': token,
             "recipients": recipients
         })
+    except requests.exceptions.ConnectionError as e:
+        raise ConnectionError
+
+
+def get_main_events():
+    try:
+        return get(_ip_app + ConfigReader.read_get_main_events_api_url()).json()
+    except requests.exceptions.ConnectionError as e:
+        raise ConnectionError
+
+
+def get_all_events_by_type(event_type):
+    try:
+        return get(f"{_ip_app}{ConfigReader.read_get_all_events_by_type_api_url()}{event_type}").json()
     except requests.exceptions.ConnectionError as e:
         raise ConnectionError

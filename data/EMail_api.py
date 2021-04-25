@@ -26,7 +26,7 @@ def send_async_email(context, mail, msg):
             print(e)
 
 
-@blueprint.route(ConfigReader.read_send_password_reset_email(), methods=['POST'])
+@blueprint.route(ConfigReader.read_send_password_reset_email_api_url(), methods=['POST'])
 def send_password_reset_email():
     if not request.json or any(map(lambda x: x not in request.json, ['token', 'recipients'])):
         return jsonify(
@@ -49,7 +49,7 @@ def send_password_reset_email():
     return jsonify({'success': 'OK'})
 
 
-@blueprint.route(ConfigReader.read_send_confirmation_email(), methods=['POST'])
+@blueprint.route(ConfigReader.read_send_confirmation_email_api_url(), methods=['POST'])
 def send_confirmation_email():
     if not request.json or any(map(lambda x: x not in request.json, ['token', 'recipients'])):
         return jsonify(

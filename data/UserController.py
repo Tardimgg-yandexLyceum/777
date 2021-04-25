@@ -12,7 +12,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 class UserController:
 
     @staticmethod
-    def create_user(email, password, name='user', surname="user", confirmed=True):
+    def create_user(email, password, name='user', surname="user", confirmed=True, money=100):
         try:
             get_salt_response = HomeApi.add_random_salt_value(password)
             salt = get_salt_response['salt']
@@ -21,7 +21,7 @@ class UserController:
             salt = ""
             hashed_password = UserController.get_hashed_password(password)
         HomeApi.add_user(email=email, hashed_password=hashed_password,
-                         name=name, surname=surname, salt=salt, confirmed=confirmed)
+                         name=name, surname=surname, salt=salt, confirmed=confirmed, money=money)
 
     @staticmethod
     def create_test_user():
@@ -64,19 +64,21 @@ class UserController:
             return False
 
     @staticmethod
-    def get_user_token(user_id, expires_in=600):
+    def get_user_token(user_id, func: str, expires_in=600):
         return jwt.encode(
-            {'id': user_id, 'exp': time() + expires_in},
+            {'id': user_id, "func": func, 'exp': time() + expires_in},
             app.config['SECRET_KEY'], algorithm='HS256')
 
     @staticmethod
     def verify_user_token(token):
         try:
-            user_id = jwt.decode(token, app.config['SECRET_KEY'],
-                                 algorithms=['HS256'])['id']
+            info = jwt.decode(token, app.config['SECRET_KEY'],
+                              algorithms=['HS256'])
         except:
             return None
-        return user_id
+        return {'id': info['id'],
+                "func": info['func']
+                }
 
     class UseUserApi:
 

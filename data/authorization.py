@@ -29,7 +29,7 @@ class RegistrationForm(FlaskForm):
 
 
 class LoginForm(FlaskForm):
-    email = EmailField('Почта', validators=[DataRequired()])
+    email = EmailField('Логин', validators=[DataRequired()])
     password = PasswordField('Пароль', validators=[DataRequired()])
     submit = SubmitField()
 
@@ -78,7 +78,7 @@ def forgot_password():
             check_email = UserController.UseUserApi.check_email(form.email.data)
             if check_email:
                 user_id = UserController.UseUserApi.get_user(form.email.data)['id']
-                token = UserController.get_user_token(user_id, 600)
+                token = UserController.get_user_token(user_id, 'password_recovery', 600)
                 HomeApi.send_password_reset_email(token, form.email.data)
                 return 'Отправлено письмо для восстановления'
             else:
@@ -94,10 +94,11 @@ def forgot_password():
 
 @blueprint.route('/password_recovery/<token>', methods=['GET', 'POST'])
 def password_recovery(token):
-    user_id = UserController.verify_user_token(token)
-    if not user_id:
+    info = UserController.verify_user_token(token)
+    if not info or info['func'] != 'password_recovery':
         return make_response("Токен недействителен", 403)
 
+    user_id = info['id']
     form = PasswordRecoveryForm()
     if form.validate_on_submit():
         try:
@@ -120,21 +121,19 @@ def registration():
     if form.validate_on_submit():
         try:
             check_email = UserController.UseUserApi.check_email(form.email.data)
+            if check_email and not UserController.UseUserApi.get_user(form.email.data)['confirmed']:
+                user_id = UserController.UseUserApi.get_user(form.email.data)['id']
+                UserController.UseUserApi.delete_user(user_id)
+                check_email = False
+
             if not check_email:
                 UserController.create_user(email=form.email.data, password=form.password.data,
                                            name=form.name.data, surname=form.surname.data, confirmed=False)
-                token = UserController.get_user_token(form.email.data, 600)
-                HomeApi.send_confirmation_email(token, form.email.data)
-                return 'Отправлено письмо для подтверждения'
-            elif not UserController.UseUserApi.get_user(form.email.data)['confirmed']:
                 user_id = UserController.UseUserApi.get_user(form.email.data)['id']
-                UserController.UseUserApi.delete_user(user_id)
-
-                UserController.create_user(email=form.email.data, password=form.password.data,
-                                           name=form.name.data, surname=form.surname.data, confirmed=False)
-                token = UserController.get_user_token(form.email.data, 600)
+                token = UserController.get_user_token(user_id, 'confirmation_email', 600)
                 HomeApi.send_confirmation_email(token, form.email.data)
                 return 'Отправлено письмо для подтверждения'
+
             else:
                 return render_template('registration.html',
                                        message="Такой пользователь уже существует",
@@ -147,12 +146,12 @@ def registration():
 
 @blueprint.route('/confirmation_email/<token>', methods=['GET', 'POST'])
 def confirmation_email(token):
-    email = UserController.verify_user_token(token)
-    if not email:
+    info = UserController.verify_user_token(token)
+    if not info or info['func'] != 'confirmation_email':
         return make_response("Токен недействителен", 403)
 
-    if UserController.UseUserApi.check_email(email):
-        user_id = UserController.UseUserApi.get_user(email=email)['id']
+    user_id = info['id']
+    if UserController.UseUserApi.check_id(user_id):
         UserController.changing_user(user_id, {'confirmed': True})
         return redirect("/login")
     else:

@@ -2,7 +2,7 @@ import argparse
 import os
 import threading
 
-from flask import Flask, render_template, redirect, request, make_response
+from flask import Flask, render_template, redirect, request, make_response, url_for
 from flask_login import LoginManager, login_user, logout_user, current_user
 from flask_mail import Mail
 from wtforms import PasswordField, BooleanField, SubmitField, StringField
@@ -12,7 +12,7 @@ from flask_wtf import FlaskForm
 
 import ConfigReader
 import get_local_ip
-from data import salt_api, ConverterObj, authorization, EMail_api
+from data import salt_api, ConverterObj, authorization, EMail_api, event_api
 from data.UserController import UserController
 from data.__all_models import User
 from flask_restful import Api
@@ -20,17 +20,8 @@ from data.DataBaseServer import DBServer, DataBase, user_resources
 import HomeApi
 
 
-class CreateTaskForm(FlaskForm):
-    job_title = StringField('Job title', validators=[DataRequired()])
-    team_leader_id = StringField('Team Leader id', validators=[DataRequired()])
-    work_size = StringField('Work Size', validators=[DataRequired()])
-    Collaborators = StringField("Collaborators")
-    is_job_finished = BooleanField("Is job finished")
-    submit = SubmitField('Сохранить')
-
-
 class MainForm(FlaskForm):
-    add_task = SubmitField('Добавить задачу', validators=[DataRequired()])
+    pass
 
 
 app = Flask(__name__)
@@ -67,6 +58,9 @@ def work_base_app():
             elif request.form["btn"] == "registration":
                 print("go to registration")
                 return redirect("/registration")
+            elif request.form["btn"] == "root":
+                print("go to root")
+                return redirect("/")
             elif request.form["btn"] == "exit":
                 print("leave session")
                 logout_user()
@@ -79,16 +73,57 @@ def work_base_app():
 @app.route('/', methods=['GET', 'POST'])
 def start_app():
     form = MainForm()
-    if form.validate_on_submit():
-        return redirect("/add_task")
+    if request.method == 'GET':
 
-    return render_template('main.html', title='Главная', form=form)
+        data = HomeApi.get_main_events()
+        cards = []
+
+        for title, value in data.items():
+            value['title'] = title
+            value['image'] = url_for('static', filename='image/football_mini.jpg')
+            value['redirect_first_event'] = f"{title}/{value['first_event']}"
+            value['redirect_second_event'] = f"{title}/{value['second_event']}"
+            value['redirect_third_event'] = f"{title}/{value['third_event']}"
+            cards.append(value)
+
+        return render_template('main.html', cards=cards, form=form)
+    return redirect(" ".join(request.form['btn'].split("_")))
+
+
+@app.route('/<string:event_type>', methods=['GET', 'POST'])
+def show_events(event_type):
+    if request.method == 'GET':
+        form = MainForm()
+        data = HomeApi.get_all_events_by_type(event_type)
+        titles = data['columns']
+        events = []
+        for key, value in data.items():
+            if key != 'columns':
+                vs = f"{value['team_1']} vs {value['team_2']}"
+                value['coef'] = list(map(lambda x: float('{:.2f}'.format(x)), value['coef']))
+
+                event = {
+                    'event': vs,
+                    'redirect': f"{event_type}/{vs}",
+                    'coef': value['coef']
+                }
+                events.append(event)
+
+        return render_template('events.html', titles=titles, events=events, form=form)
+
+    return redirect(" ".join(request.form['btn'].split("_")))
+
+
+@app.route('/<string:event_type>/<string:event>', methods=['GET', 'POST'])
+def show_event(event_type, event):
+    return render_template('base.html')
 
 
 if __name__ == '__main__':
     app.register_blueprint(salt_api.blueprint)
     app.register_blueprint(authorization.blueprint)
     app.register_blueprint(EMail_api.blueprint)
+    app.register_blueprint(event_api.blueprint)
 
 
     def add_test_user():

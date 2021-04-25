@@ -18,6 +18,7 @@ class User(SqlAlchemyBase, UserMixin, SerializerMixin):
     hashed_password = sqlalchemy.Column(sqlalchemy.String, nullable=True)
     salt = sqlalchemy.Column(sqlalchemy.PickleType, nullable=True)
     confirmed = sqlalchemy.Column(sqlalchemy.Boolean, nullable=True, default=True)
+    money = sqlalchemy.Column(sqlalchemy.Integer, nullable=True, default=100)
 
 
 
