@@ -24,7 +24,7 @@ class MainForm(FlaskForm):
 
 
 class EventForm(FlaskForm):
-    selected_coef = StringField('Коэффицент', render_kw={'readonly': True})
+    selected_coef = StringField('Коэффициент', render_kw={'readonly': True})
 
     money = IntegerField('Ставка')
     submit = SubmitField('Поставить')
