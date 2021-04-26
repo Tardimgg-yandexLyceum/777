@@ -183,7 +183,7 @@ def show_event(event_type, event):
     if 'submit' in request.form:
         if not request.form['selected_coef'] or not request.form['money'] or request.form['money'] == '0':
             return render_template('event.html', form=form, coef=coef, event=vs,
-                                   team_1=first, team_2=second, time=f"{int(time_end - time())} (c)",
+                                   team_1=first, team_2=second, time=f"До конца: {int(time_end - time())} c",
                                    titles=data['columns'], message="Нет ставки", background=background)
         if current_user.is_authenticated:
             budget = UserController.UseUserApi.get_user(email="", user_id=session["id"])['money']
@@ -196,26 +196,26 @@ def show_event(event_type, event):
                                             coef=request.form['selected_coef'], time=time_end)
 
                 return render_template('event.html', form=form, coef=coef, event=vs,
-                                       team_1=first, team_2=second, time=f"{int(time_end - time())} (c)",
+                                       team_1=first, team_2=second, time=f"До конца: {int(time_end - time())} c",
                                        titles=data['columns'], message='Ставка создана', background=background)
             else:
                 return render_template('event.html', form=form, coef=coef, event=vs,
-                                       team_1=first, team_2=second, time=f"{int(time_end - time())} (c)",
+                                       team_1=first, team_2=second, time=f"До конца: {int(time_end - time())} c",
                                        titles=data['columns'], message='Не хватает денег', background=background)
         else:
             return render_template('event.html', form=form, coef=coef, event=vs,
-                                   team_1=first, team_2=second, time=f"{int(time_end - time())} (c)",
+                                   team_1=first, team_2=second, time=f"До конца: {int(time_end - time())} c",
                                    titles=data['columns'], message='Вы не вошли в аккаунт', background=background)
 
     if request.method == 'GET':
         return render_template('event.html', form=form, coef=coef, event=vs,
-                               team_1=first, team_2=second, time=f"{int(time_end - time())} (c)",
+                               team_1=first, team_2=second, time=f"До конца: {int(time_end - time())} c",
                                titles=data['columns'], background=background)
 
     selected_coef = coef[int(request.form['btn']) - 1]
 
     return render_template('event.html', form=form, coef=coef, event=vs,
-                           team_1=first, team_2=second, time=f"{int(time_end - time())} (c)",
+                           team_1=first, team_2=second, time=f"До конца: {int(time_end - time())} c",
                            titles=data['columns'], selected_coef=selected_coef, background=background)
 
 
