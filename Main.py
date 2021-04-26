@@ -184,7 +184,7 @@ def show_event(event_type, event):
         if not request.form['selected_coef'] or not request.form['money'] or request.form['money'] == '0':
             return render_template('event.html', form=form, coef=coef, event=vs,
                                    team_1=first, team_2=second, time=f"{int(time_end - time())} (c)",
-                                   titles=data['columns'], message="Нет ставки")
+                                   titles=data['columns'], message="Нет ставки", background=background)
         if current_user.is_authenticated:
             budget = UserController.UseUserApi.get_user(email="", user_id=session["id"])['money']
             if budget >= int(request.form['money']):
