@@ -1,11 +1,9 @@
-from sqlalchemy import exc
-from flask_restful import Resource, abort, reqparse
 from flask import jsonify, request, make_response
+from flask_restful import Resource, abort, reqparse
+from sqlalchemy import exc
 
-import HomeApi
-from data.UserController import UserController
-from data.__all_models import User
 from data.DataBaseServer import DataBase
+from data.__all_models import User
 
 parser = reqparse.RequestParser()
 parser.add_argument('name', location="json", required=True)

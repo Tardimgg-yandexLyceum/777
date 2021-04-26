@@ -1,12 +1,12 @@
 from time import time
 
 import jwt
+from flask import current_app as app
+from werkzeug.security import generate_password_hash, check_password_hash
+
 import HomeApi
 from data import ConverterObj
 from data.__all_models import User
-from flask import current_app as app
-from data.DataBaseServer import DataBase
-from werkzeug.security import generate_password_hash, check_password_hash
 
 
 class UserController:

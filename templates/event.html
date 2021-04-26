@@ -1,0 +1,93 @@
+{% extends "base.html" %}
+
+{% block content %}
+<body style="background-image: url({{background}})">
+
+<form action="" method="post">
+    {{ form.hidden_tag() }}
+    <table cellpadding="15" width="100%" style="margin-top: 80px">
+        <TR>
+
+            <TD align="center">
+                <div class="card" align="left" style="background-color: #dddddd; width: 18rem;">
+                    <img src="{{team_1['image']}}" class="card-img-top" alt="...">
+
+
+                    <div class="card-body">
+                        <h5 class="card-title">{{team_1['title']}}</h5>
+                    </div>
+
+                </div>
+            </TD>
+
+            <TD align="center">
+                <div class="card" align="left" style="background-color: #dddddd; width: 18rem;">
+                    <img src="{{team_2['image']}}" class="card-img-top" alt="...">
+
+
+                    <div class="card-body">
+                        <h5 class="card-title">{{team_2['title']}}</h5>
+                    </div>
+                </div>
+            </TD>
+
+        </TR>
+    </table>
+    <div class="center card" align="center"
+         style="background-color: #dddddd; width: 7rem; margin: 0 auto; margin-top: 30px;">
+        <div class="card-body">
+            <h5 class="card-title">{{time}}</h5>
+        </div>
+    </div>
+
+    <table class="table table-hover table-success table-striped" width="100%"
+           style="margin-top: 100px">
+        <TR>
+            {% for title in titles %}
+            <TD style='text-align: left; padding-left: 15px'>{{title}}</TD>
+            {% endfor %}
+        </TR>
+        <TR>
+            <TD>
+                <form method="post" action="" autocomplete="off">
+                    <a style='text-align: left; width: 100%; height: 100%; line-height: 100%; background-color: inherit; outline: 0; border: 0;'>
+                        {{event}}
+                    </a>
+                </form>
+            </TD>
+            {% for value in coef %}
+            <TD>
+                <form method="post" action="" autocomplete="off">
+                    <button name='btn' value={{loop.index}}
+                            style='text-align: left; width: 100%; height: 100%; line-height: 100%; background-color: inherit; outline: 0; border: 0;'
+                            type="submit">
+                        {{value}}
+                    </button>
+                </form>
+            </TD>
+            {% endfor %}
+        </TR>
+    </table>
+    <p style="color: #ffffff">
+        {{ form.selected_coef.label }}<br>
+        {{ form.selected_coef(class="form-control", value=selected_coef, width= "8rem") }}<br>
+        {% for error in form.selected_coef.errors %}
+            <div class="alert alert-danger" role="alert">
+                {{ error }}
+            </div>
+        {% endfor %}
+    <p>
+    <p style="color: #ffffff">
+        {{ form.money.label }}<br>
+        {{ form.money(class="form-control", width= "8rem") }}<br>
+        {% for error in form.money.errors %}
+    <div class="alert alert-danger" role="alert">
+        {{ error }}
+    </div>
+    {% endfor %}
+    <p>
+        {{ form.submit(type="submit", class="btn btn-primary") }}</p>
+    <div style="color: #ff0000">{{ message }}</div>
+</form>
+</body>
+{% endblock %}

@@ -1,9 +1,9 @@
-from flask_restful import Resource, abort
 from flask import jsonify, request, make_response
+from flask_restful import Resource, abort
 
 from data import ConverterObj
-from data.__all_models import User
 from data.DataBaseServer import DataBase
+from data.__all_models import User
 
 
 class BinUserResource(Resource):

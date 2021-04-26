@@ -1,10 +1,11 @@
 {% extends "base.html" %}
 
 {% block content %}
+<body style="background-image: url({{background}})">
 <form action="" method="post">
     {{ form.hidden_tag() }}
     <table class="table table-hover table-success table-striped" width="100%"
-           style="margin-top: 50px">
+           style="margin-top: 100px">
         <TR>
             {% for title in titles %}
             <TD style='text-align: left; padding-left: 15px'>{{title}}</TD>
@@ -14,7 +15,7 @@
         <TR>
             <TD>
                 <form method="post" action="" autocomplete="off">
-                    <button name='btn' value={{'_'.join(event['redirect'].split())}}
+                    <button name='btn' value={{'_'.join(event['redirection'].split())}}
                             style='text-align: left; width: 100%; height: 100%; line-height: 100%; background-color: inherit; outline: 0; border: 0;'
                             type="submit">
                         {{event['event']}}
@@ -24,7 +25,7 @@
             {% for value in event['coef'] %}
             <TD>
                 <form method="post" action="" autocomplete="off">
-                    <button name='btn' value={{'_'.join(event['redirect'].split())}}
+                    <button name='btn' value={{'_'.join(event['redirection'].split())}}
                             style='text-align: left; width: 100%; height: 100%; line-height: 100%; background-color: inherit; outline: 0; border: 0;'
                             type="submit">
                         {{value}}
@@ -36,4 +37,5 @@
         {% endfor %}
     </table>
 </form>
+</body>
 {% endblock %}

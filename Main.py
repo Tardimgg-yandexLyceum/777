@@ -1,27 +1,33 @@
-import argparse
+import os
 import os
 import threading
+from time import time
 
-from flask import Flask, render_template, redirect, request, make_response, url_for
-from flask_login import LoginManager, login_user, logout_user, current_user
+from flask import Flask, render_template, redirect, request, url_for, session, jsonify
+from flask_login import LoginManager, logout_user, current_user
 from flask_mail import Mail
-from wtforms import PasswordField, BooleanField, SubmitField, StringField
-from wtforms.fields.html5 import EmailField
-from wtforms.validators import DataRequired
+from flask_restful import Api
 from flask_wtf import FlaskForm
+from wtforms import SubmitField, StringField
+from wtforms.fields.html5 import IntegerField
 
 import ConfigReader
-import get_local_ip
-from data import salt_api, ConverterObj, authorization, EMail_api, event_api
-from data.UserController import UserController
-from data.__all_models import User
-from flask_restful import Api
-from data.DataBaseServer import DBServer, DataBase, user_resources
 import HomeApi
+import get_local_ip
+from data import salt_api, authorization, EMail_api, event_api, EventServer
+from data.DataBaseServer import DBServer
+from data.UserController import UserController
 
 
 class MainForm(FlaskForm):
     pass
+
+
+class EventForm(FlaskForm):
+    selected_coef = StringField('Коэффицент', render_kw={'readonly': True})
+
+    money = IntegerField('Ставка')
+    submit = SubmitField('Поставить')
 
 
 app = Flask(__name__)
@@ -80,22 +86,45 @@ def start_app():
 
         for title, value in data.items():
             value['title'] = title
-            value['image'] = url_for('static', filename='image/football_mini.jpg')
-            value['redirect_first_event'] = f"{title}/{value['first_event']}"
-            value['redirect_second_event'] = f"{title}/{value['second_event']}"
-            value['redirect_third_event'] = f"{title}/{value['third_event']}"
+
+            translate = {
+                "футбол": "football_mini.jpg",
+                "волейбол": "volleyball_mini.png",
+                "хоккей": "hockey_mini.png",
+                "баскетбол": "basketball_mini.png"
+            }
+            event_img = translate[title.lower()]
+
+            value['image'] = url_for('static', filename=f'image/{event_img}')
+            value['redirect_first_event'] = f"/{title}/{value['first_event']}"
+            value['redirect_second_event'] = f"/{title}/{value['second_event']}"
+            value['redirect_third_event'] = f"/{title}/{value['third_event']}"
+            value['redirect_event'] = f"/event/{title}"
             cards.append(value)
 
-        return render_template('main.html', cards=cards, form=form)
-    return redirect(" ".join(request.form['btn'].split("_")))
+        background = url_for('static', filename='image/main_logo.png')
+
+        return render_template('main.html', cards=cards, form=form, background=background)
+    return redirect(f"/event{' '.join(request.form['btn'].split('_'))}")
 
 
-@app.route('/<string:event_type>', methods=['GET', 'POST'])
+@app.route('/event/<string:event_type>', methods=['GET', 'POST'])
 def show_events(event_type):
     if request.method == 'GET':
         form = MainForm()
         data = HomeApi.get_all_events_by_type(event_type)
         titles = data['columns']
+
+        translate = {
+            "футбол": "football.png",
+            "волейбол": "volleyball.png",
+            "хоккей": "hockey.png",
+            "баскетбол": "basketball.png"
+        }
+        link = translate[event_type.lower()]
+
+        background = url_for('static', filename=f'image/{link}')
+
         events = []
         for key, value in data.items():
             if key != 'columns':
@@ -104,19 +133,90 @@ def show_events(event_type):
 
                 event = {
                     'event': vs,
-                    'redirect': f"{event_type}/{vs}",
+                    'redirection': f"/event/{event_type}/{vs}",
                     'coef': value['coef']
                 }
                 events.append(event)
 
-        return render_template('events.html', titles=titles, events=events, form=form)
-
+        return render_template('events.html', titles=titles, events=events, form=form, background=background)
     return redirect(" ".join(request.form['btn'].split("_")))
 
 
-@app.route('/<string:event_type>/<string:event>', methods=['GET', 'POST'])
+@app.route('/event/<string:event_type>/<string:event>', methods=['GET', 'POST'])
 def show_event(event_type, event):
-    return render_template('base.html')
+    form = EventForm()
+
+    event = event.split()
+    event[1] = "_"
+    data = HomeApi.get_event(event_type, "".join(event))
+
+    try:
+
+        coef = list(map(lambda x: float('{:.2f}'.format(x)), data['1']['coef']))
+    except Exception as e:
+        return jsonify({
+            "message": 'the competition is over'
+        })
+
+    vs = f"{data['1']['team_1']} vs {data['1']['team_2']}"
+    time_end = data['1']['time']
+
+    translate = {
+        "футбол": "football",
+        "волейбол": "volleyball",
+        "хоккей": "hockey",
+        "баскетбол": "basketball"
+    }
+    event_type = translate[event_type.lower()]
+
+    background = url_for('static', filename=f'image/{event_type}.png')
+
+    first = {
+        'title': event[0],
+        'image': f'{url_for("static", filename="")}image/{event_type}_clubs/{event[0]}.jpg'
+    }
+    second = {
+        'title': event[2],
+        'image': f'{url_for("static", filename="")}image/{event_type}_clubs/{event[2]}.jpg'
+    }
+
+    if 'submit' in request.form:
+        if not request.form['selected_coef'] or not request.form['money'] or request.form['money'] == '0':
+            return render_template('event.html', form=form, coef=coef, event=vs,
+                                   team_1=first, team_2=second, time=f"{int(time_end - time())} (c)",
+                                   titles=data['columns'], message="Нет ставки")
+        if current_user.is_authenticated:
+            budget = UserController.UseUserApi.get_user(email="", user_id=session["id"])['money']
+            if budget >= int(request.form['money']):
+
+                UserController.changing_user(session['id'], {
+                    "money": budget - int(request.form['money'])
+                })
+                HomeApi.read_add_user_event(user_id=session['id'], money=request.form['money'],
+                                            coef=request.form['selected_coef'], time=time_end)
+
+                return render_template('event.html', form=form, coef=coef, event=vs,
+                                       team_1=first, team_2=second, time=f"{int(time_end - time())} (c)",
+                                       titles=data['columns'], message='Ставка создана', background=background)
+            else:
+                return render_template('event.html', form=form, coef=coef, event=vs,
+                                       team_1=first, team_2=second, time=f"{int(time_end - time())} (c)",
+                                       titles=data['columns'], message='Не хватает денег', background=background)
+        else:
+            return render_template('event.html', form=form, coef=coef, event=vs,
+                                   team_1=first, team_2=second, time=f"{int(time_end - time())} (c)",
+                                   titles=data['columns'], message='Вы не вошли в аккаунт', background=background)
+
+    if request.method == 'GET':
+        return render_template('event.html', form=form, coef=coef, event=vs,
+                               team_1=first, team_2=second, time=f"{int(time_end - time())} (c)",
+                               titles=data['columns'], background=background)
+
+    selected_coef = coef[int(request.form['btn']) - 1]
+
+    return render_template('event.html', form=form, coef=coef, event=vs,
+                           team_1=first, team_2=second, time=f"{int(time_end - time())} (c)",
+                           titles=data['columns'], selected_coef=selected_coef, background=background)
 
 
 if __name__ == '__main__':
@@ -124,21 +224,14 @@ if __name__ == '__main__':
     app.register_blueprint(authorization.blueprint)
     app.register_blueprint(EMail_api.blueprint)
     app.register_blueprint(event_api.blueprint)
-
-
-    def add_test_user():
-        print("***************")
-        parser = argparse.ArgumentParser()
-        parser.add_argument('--test', action="store_true")
-
-        args = parser.parse_args()
-        if args.test:
-            UserController.create_test_user()
-
+    app.register_blueprint(EventServer.blueprint)
 
     host_db = ConfigReader.read_data_base_host()
     port_db = int(ConfigReader.read_data_base_port())
-    threading.Thread(target=lambda: DBServer.start_server(host=host_db, port=port_db, func_start=add_test_user),
+    threading.Thread(target=lambda: DBServer.start_server(host=host_db, port=port_db),
+                     daemon=True).start()
+
+    threading.Thread(target=EventServer.event_service,
                      daemon=True).start()
 
     host_web_app = ConfigReader.read_web_application_host()

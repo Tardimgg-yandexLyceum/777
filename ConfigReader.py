@@ -115,6 +115,12 @@ def read_get_all_events_by_type_api_url():
     return None
 
 
+def read_get_event_api_url():
+    if "API_config" in config and "getEvent" in config["API_config"]:
+        return config["API_config"]["getEvent"]
+    return None
+
+
 # email
 
 def read_mail_server():
@@ -150,4 +156,12 @@ def read_mail_admins():
 def read_mail_password():
     if "EMail_config" in config and "MAIL_PASSWORD" in config["EMail_config"]:
         return config["EMail_config"]["MAIL_PASSWORD"]
+    return None
+
+
+# event
+
+def read_add_user_event():
+    if "Event_config" in config and "addUser" in config["Event_config"]:
+        return config["Event_config"]["addUser"]
     return None
