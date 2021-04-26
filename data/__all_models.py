@@ -1,4 +1,3 @@
-import datetime
 import sqlalchemy
 from flask_login import UserMixin
 from sqlalchemy_serializer import SerializerMixin
@@ -19,8 +18,3 @@ class User(SqlAlchemyBase, UserMixin, SerializerMixin):
     salt = sqlalchemy.Column(sqlalchemy.PickleType, nullable=True)
     confirmed = sqlalchemy.Column(sqlalchemy.Boolean, nullable=True, default=True)
     money = sqlalchemy.Column(sqlalchemy.Integer, nullable=True, default=100)
-
-
-
-
-

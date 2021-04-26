@@ -1,16 +1,12 @@
 import flask
-from flask import redirect, render_template, make_response, request
-from flask_mail import Message
+from flask import redirect, render_template, make_response, session
+from flask_login import login_user
 from flask_wtf import FlaskForm
-from wtforms import PasswordField, BooleanField, SubmitField, StringField
+from wtforms import PasswordField, SubmitField, StringField
 from wtforms.fields.html5 import EmailField
 from wtforms.validators import DataRequired
 
-from flask_login import LoginManager, login_user, logout_user, current_user
-
 import HomeApi
-import Main
-from data import ConverterObj, EMail_api
 from data.UserController import UserController
 
 blueprint = flask.Blueprint(
@@ -55,6 +51,7 @@ def login():
                 if user.confirmed:
                     if user and UserController.check_password(user, form.password.data):
                         login_user(user)
+                        session['id'] = user.id
                         return redirect("/")
                 else:
                     return render_template('login.html',
@@ -79,7 +76,7 @@ def forgot_password():
             if check_email:
                 user_id = UserController.UseUserApi.get_user(form.email.data)['id']
                 token = UserController.get_user_token(user_id, 'password_recovery', 600)
-                HomeApi.send_password_reset_email(token, form.email.data)
+                HomeApi.send_password_reset_email(f'{HomeApi.get_ip_app()}/password_recovery/{token}', form.email.data)
                 return 'Отправлено письмо для восстановления'
             else:
                 return render_template('forgot_password.html',
@@ -131,7 +128,7 @@ def registration():
                                            name=form.name.data, surname=form.surname.data, confirmed=False)
                 user_id = UserController.UseUserApi.get_user(form.email.data)['id']
                 token = UserController.get_user_token(user_id, 'confirmation_email', 600)
-                HomeApi.send_confirmation_email(token, form.email.data)
+                HomeApi.send_confirmation_email(f'{HomeApi.get_ip_app()}/confirmation_email/{token}', form.email.data)
                 return 'Отправлено письмо для подтверждения'
 
             else:

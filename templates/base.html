@@ -39,7 +39,7 @@
             </form>
         </div> -->
 
-        <nav class="navbar navbar-expand-lg" style="background-color: #e6e6e6;">
+        <nav class="navbar fixed-top navbar-expand-lg" style="background-color: #e6e6e6;">
   <div class="container-fluid">
       <form method="post" action="{{ url_for('work_base_app') }}">
           <button name="btn" value = "root" type="submit"
@@ -57,6 +57,7 @@
           <div class="d-grid gap-2 d-md-flex justify-content-md-end">
               {% if current_user.is_authenticated %}
                     <a class="btn bg-transparent disabled"> Пользователь: {{current_user.name}} </a>
+                    <a class="btn bg-transparent disabled"> Бюджет: {{current_user.money}} </a>
                     <button style="float: right;" name='btn' value = "exit" type="submit" class="btn btn-outline-success">Выход</button>
 
               {% else %}

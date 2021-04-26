@@ -1,8 +1,8 @@
 import flask
 from flask import render_template, make_response, jsonify, request, current_app as app
 from flask_mail import Message
-import ConfigReader
 
+import ConfigReader
 from CustomClass.AsynsTask import a_sync
 
 blueprint = flask.Blueprint(
@@ -28,22 +28,20 @@ def send_async_email(context, mail, msg):
 
 @blueprint.route(ConfigReader.read_send_password_reset_email_api_url(), methods=['POST'])
 def send_password_reset_email():
-    if not request.json or any(map(lambda x: x not in request.json, ['token', 'recipients'])):
+    if not request.json or any(map(lambda x: x not in request.json, ['redirection', 'recipients'])):
         return jsonify(
             {
                 'error': 'no data available'
             }
         )
-    token = request.json['token']
     recipients = request.json['recipients']
     msg = Message('[777] Reset Your Password',
                   sender=app.config['ADMINS'][0],
                   recipients=[recipients])
     # msg.body = render_template('forgot_password_message.html',
     #                           token=token)
-    msg.body = 'Body of the email to send'
-    # msg.html = render_template('forgot_password_message.html', title='Восстановление')
-    msg.html = token
+    msg.body = render_template('forgot_password_message.html', redirection=request.json['redirection'])
+    msg.html = render_template('forgot_password_message.html', redirection=request.json['redirection'])
     from Main import mail
     send_async_email(app.app_context, mail, msg)
     return jsonify({'success': 'OK'})
@@ -51,22 +49,20 @@ def send_password_reset_email():
 
 @blueprint.route(ConfigReader.read_send_confirmation_email_api_url(), methods=['POST'])
 def send_confirmation_email():
-    if not request.json or any(map(lambda x: x not in request.json, ['token', 'recipients'])):
+    if not request.json or any(map(lambda x: x not in request.json, ['redirection', 'recipients'])):
         return jsonify(
             {
                 'error': 'no data available'
             }
         )
-    token = request.json['token']
     recipients = request.json['recipients']
     msg = Message('[777] Confirmation Your Email',
                   sender=app.config['ADMINS'][0],
                   recipients=[recipients])
-#    msg.body = render_template('email_confirmation_message.txt',
-#                               token=token)
+    #    msg.body = render_template('email_confirmation_message.txt',
+    #                               token=token)
     msg.body = 'Body of the email to send'
-    msg.html = token
+    msg.html = render_template('email_confirmation_message.html', redirection=request.json['redirection'])
     from Main import mail
     send_async_email(app.app_context, mail, msg)
     return jsonify({'success': 'OK'})
-

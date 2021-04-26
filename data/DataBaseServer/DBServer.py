@@ -1,13 +1,12 @@
 import os
 
 from flask import Flask, render_template
+from flask_restful import Api
 
 import ConfigReader
-from data import UserController
-from data.DataBaseServer import user_resources, DataBase
 from data.DataBaseServer import bin_user_resources
+from data.DataBaseServer import user_resources, DataBase
 from . import db_api
-from flask_restful import Api
 
 app = Flask(__name__)
 api = Api(app)
@@ -21,7 +20,7 @@ def main():
     return render_template('DBView.html')
 
 
-def start_server(host, port, func_start=lambda: None):
+def start_server(host, port):
     app.register_blueprint(db_api.blueprint)
     api.add_resource(user_resources.UserListResource, ConfigReader.read_users_api_url())
     api.add_resource(user_resources.UserResource, ConfigReader.read_user_api_url())

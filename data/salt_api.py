@@ -1,6 +1,7 @@
+import os
+
 import flask
 from flask import jsonify, make_response, request
-import os
 
 import ConfigReader
 

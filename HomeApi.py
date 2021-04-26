@@ -1,6 +1,5 @@
 import requests
 from requests import get, post, delete
-import configparser
 
 import ConfigReader
 import get_local_ip
@@ -16,6 +15,10 @@ if all(map(lambda x: x is not None, [protocol, host, port])):
     _ip_app = f"{protocol}{host}:{port}"
 else:
     _ip_app = None
+
+
+def get_ip_app():
+    return _ip_app
 
 
 def get_bin_user(email: str, user_id=None):
@@ -115,20 +118,20 @@ def add_salt_value(value: str, salt: str):
         raise ConnectionError
 
 
-def send_password_reset_email(token, recipients):
+def send_password_reset_email(redirection, recipients):
     try:
         return post(_ip_app + ConfigReader.read_send_password_reset_email_api_url(), json={
-            'token': token,
+            'redirection': redirection,
             "recipients": recipients
         })
     except requests.exceptions.ConnectionError as e:
         raise ConnectionError
 
 
-def send_confirmation_email(token, recipients):
+def send_confirmation_email(redirection, recipients):
     try:
         return post(_ip_app + ConfigReader.read_send_confirmation_email_api_url(), json={
-            'token': token,
+            'redirection': redirection,
             "recipients": recipients
         })
     except requests.exceptions.ConnectionError as e:
@@ -145,5 +148,24 @@ def get_main_events():
 def get_all_events_by_type(event_type):
     try:
         return get(f"{_ip_app}{ConfigReader.read_get_all_events_by_type_api_url()}{event_type}").json()
+    except requests.exceptions.ConnectionError as e:
+        raise ConnectionError
+
+
+def get_event(event_type, event):
+    try:
+        return get(f"{_ip_app}{ConfigReader.read_get_event_api_url()}{event_type}/{event}").json()
+    except requests.exceptions.ConnectionError as e:
+        raise ConnectionError
+
+
+def read_add_user_event(user_id, money, coef, time):
+    try:
+        return post(f"{_ip_app}{ConfigReader.read_add_user_event()}", json={
+            'money': money,
+            'user_id': user_id,
+            'coef': coef,
+            'time': time
+        }).json()
     except requests.exceptions.ConnectionError as e:
         raise ConnectionError

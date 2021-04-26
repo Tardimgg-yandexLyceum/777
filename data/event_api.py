@@ -1,8 +1,9 @@
-import flask
-from flask import jsonify, make_response, request
 import random
 from random import choice
 from time import time
+
+import flask
+from flask import jsonify, make_response
 
 import ConfigReader
 
@@ -24,6 +25,15 @@ basketball_clubs = ["ЦСКА", "Енисей", "Химки", "Парма", "З�
                     "Русичи"]
 
 
+def clear_event():
+    delete = []
+    for i in range(len(events)):
+        if events[i]['time'] <= time():
+            delete.append(i)
+    for index in delete[::-1]:
+        del events[index]
+
+
 def create_event():
     for sport in [['football', football_clubs], ['volleyball', volleyball_clubs], ['hockey', hockey_clubs],
                   ['basketball', basketball_clubs]]:
@@ -42,8 +52,31 @@ def not_found(error):
     return make_response(jsonify({'error': 'Not found'}), 404)
 
 
+@blueprint.route(f"{ConfigReader.read_get_event_api_url()}/<string:event_type>/<string:event>", methods=['GET'])
+def get_event(event_type, event):
+    translate = {
+        "футбол": "football",
+        "волейбол": "volleyball",
+        "хоккей": "hockey",
+        "баскетбол": "basketball"
+    }
+    event_type = translate[event_type.lower()]
+
+    answer = {
+        "columns": ['Команды', 'Победа 1', 'Победа 2', '1:0', "2:0", "2:1", "2:2", "0:1", "0:2", "1:2"],
+    }
+
+    for value in events:
+        if value['sport'] == event_type and f"{value['team_1']}_{value['team_2']}" == event or \
+                f"{value['team_2']}_{value['team_1']}" == event:
+            answer['1'] = value.copy()
+            break
+    return jsonify(answer)
+
+
 @blueprint.route(f"{ConfigReader.read_get_all_events_by_type_api_url()}/<string:event_type>", methods=['GET'])
 def get_all_events_by_type(event_type):
+    clear_event()
 
     if len(events) <= 20:
         create_event()
@@ -71,6 +104,7 @@ def get_all_events_by_type(event_type):
 
 @blueprint.route(ConfigReader.read_get_main_events_api_url(), methods=['GET'])
 def get_main_events():
+    clear_event()
 
     if len(events) <= 20:
         create_event()

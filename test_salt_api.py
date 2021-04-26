@@ -1,13 +1,9 @@
-import codecs
-import pickle
 import unittest
 
 from requests import get
 
 import ConfigReader
 import get_local_ip
-from data import ConverterObj
-import HomeApi
 
 
 class TestDBApi(unittest.TestCase):

@@ -1,12 +1,9 @@
-import codecs
-
 import flask
 from flask import jsonify, make_response, request
 
 import ConfigReader
-from data import ConverterObj
-from . import DataBase
 from data.__all_models import User
+from . import DataBase
 
 blueprint = flask.Blueprint(
     'db_api',

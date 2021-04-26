@@ -1,10 +1,7 @@
-import codecs
-import pickle
 import unittest
 
-from requests import get
-from data import ConverterObj
 import HomeApi
+from data import ConverterObj
 
 
 class TestDBApi(unittest.TestCase):
